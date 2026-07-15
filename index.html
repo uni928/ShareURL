@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>URL Share</title>
+  <meta name="description" content="URL共有用リンクの作成、アクセス、QRコード表示ができるシンプルなサイトです。">
+
+    <!-- 参考サイトと同系統の、対応ブラウザが広いQRライブラリ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
+  <style>
+    @layer base, make1, make2, make3;
+
+    @layer base {
+      :root {
+        color-scheme: light dark;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", "Noto Sans JP", sans-serif;
+        --bg: #f3f4f6;
+        --panel: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --line: #d1d5db;
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --danger: #7ab5fc;
+        --success: #15803d;
+        --shadow: 0 16px 40px rgb(15 23 42 / 12%);
+        --radius: 18px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100svh;
+        background:
+          radial-gradient(circle at top left, rgb(37 99 235 / 12%), transparent 32rem),
+          var(--bg);
+        color: var(--text);
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0f172a;
+          --panel: #111827;
+          --text: #f9fafb;
+          --muted: #9ca3af;
+          --line: #374151;
+          --primary: #60a5fa;
+          --primary-hover: #93c5fd;
+          --danger: #7ab5fc;
+          --success: #4ade80;
+          --shadow: 0 16px 40px rgb(0 0 0 / 35%);
+        }
+      }
+    }
+
+    @layer make1 {
+      /* レイアウト */
+      .page {
+        width: min(100% - 32px, 720px);
+        margin-inline: auto;
+        padding-block: 48px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .brand__mark {
+        display: grid;
+        place-items: center;
+        width: 44px;
+        aspect-ratio: 1;
+        border-radius: 14px;
+        background: var(--primary);
+        color: white;
+        font-size: 22px;
+        box-shadow: var(--shadow);
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: clamp(1.4rem, 4vw, 2rem);
+      }
+
+      .brand p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .panel {
+        padding: clamp(20px, 5vw, 32px);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: color-mix(in srgb, var(--panel) 94%, transparent);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+      }
+
+      .stack {
+        display: grid;
+        gap: 16px;
+      }
+
+      .button-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .button-grid--two {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      @media (max-width: 620px) {
+        .page {
+          padding-block: 24px;
+        }
+
+        .button-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    }
+
+    @layer make2 {
+      /* フォーム・ボタン */
+      .label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 700;
+      }
+
+      .input {
+        width: 100%;
+        min-height: 52px;
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel);
+        color: var(--text);
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+
+      .input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent);
+      }
+
+      .button {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 11px 16px;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        font-weight: 750;
+        text-decoration: none;
+        transition: transform 0.15s, background 0.2s, border-color 0.2s;
+      }
+
+      .button:active {
+        transform: translateY(1px);
+      }
+
+      .button--primary {
+        background: var(--primary);
+        color: white;
+      }
+
+      .button--primary:hover {
+        background: var(--primary-hover);
+      }
+
+      .button--secondary {
+        border-color: var(--line);
+        background: var(--panel);
+        color: var(--text);
+      }
+
+      .button--secondary:hover {
+        border-color: var(--primary);
+      }
+
+      .button--danger {
+        background: var(--danger);
+        color: white;
+      }
+
+      .helper,
+      .status {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .status[data-kind="success"] {
+        color: var(--success);
+      }
+
+      .status[data-kind="error"] {
+        color: var(--danger);
+      }
+    }
+
+    @layer make3 {
+      /* 共有画面・QR表示・読み取り案内 */
+      .target-box {
+        overflow-wrap: anywhere;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: color-mix(in srgb, var(--bg) 75%, var(--panel));
+        line-height: 1.7;
+      }
+
+      .link-button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--primary);
+        text-decoration: underline;
+        overflow-wrap: anywhere;
+      }
+
+      .qr-box {
+        display: grid;
+        place-items: center;
+        min-height: 310px;
+        padding: 20px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: white;
+      }
+
+      #qrCode img,
+      #qrCode canvas {
+        display: block;
+        max-width: 100%;
+        height: auto;
+      }
+
+      .divider {
+        height: 1px;
+        margin-block: 4px;
+        background: var(--line);
+      }
+
+      .tiny {
+        font-size: 0.84rem;
+      }
+
+      /* hidden属性は後段レイヤーで必ず表示指定より優先します。 */
+      [hidden] {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header class="brand">
+      <div class="brand__mark" aria-hidden="true">↗</div>
+      <div>
+        <h1>URL Share</h1>
+        <p>URLを共有リンクに変換します。</p>
+      </div>
+    </header>
+
+    <!-- クエリパラメータなし -->
+    <section id="createView" class="panel stack" hidden>
+      <div>
+        <label class="label" for="urlInput">共有するURL</label>
+        <input
+          id="urlInput"
+          class="input"
+          type="url"
+          inputmode="url"
+          autocomplete="url"
+          placeholder="https://example.com/path"
+        >
+      </div>
+
+      <button id="copyShareUrlButton" class="button button--primary" type="button">
+        共有用URLをコピー
+      </button>
+
+      <p class="helper">
+        入力したURLの <code>https://</code> 以降を、現在のサイトの
+        <code>?url=</code> に格納します。
+      </p>
+
+      <p id="createStatus" class="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- クエリパラメータあり -->
+    <section id="shareView" class="panel stack" hidden>
+      <div>
+        <span class="label">共有されたURL</span>
+        <div id="targetUrlText" class="target-box"></div>
+      </div>
+
+      <div class="button-grid">
+        <a id="openUrlButton" class="button button--primary" href="#" target="_blank" rel="noopener noreferrer">
+          アクセスする
+        </a>
+        <button
+    id="openWithoutCacheButton"
+    class="button button--danger"
+    type="button"
+  >
+    キャッシュ回避アクセス
+  </button>
+        <button id="showQrButton" class="button button--secondary" type="button">
+          このURLのQRコードを表示
+        </button>
+      </div>
+
+      <section id="qrSection" class="stack" hidden>
+        <div class="divider"></div>
+        <div class="qr-box">
+          <div id="qrCode" role="img" aria-label="共有URLのQRコード"></div>
+        </div>
+
+        <p class="helper tiny">
+          QRコードは <a href="https://x.gd/1JQYm" target="_blank" rel="noopener noreferrer">x.gd/1JQYm</a> にアクセスし、表示された読み取りサイトから読み取れます。環境によっては先頭に <code>https://</code> が必要です。
+        </p>
+      </section>
+
+      <p id="shareStatus" class="status" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <script>
+    const createView = document.querySelector("#createView");
+    const shareView = document.querySelector("#shareView");
+    const urlInput = document.querySelector("#urlInput");
+    const copyShareUrlButton = document.querySelector("#copyShareUrlButton");
+    const createStatus = document.querySelector("#createStatus");
+
+    const targetUrlText = document.querySelector("#targetUrlText");
+    const openUrlButton = document.querySelector("#openUrlButton");
+    const showQrButton = document.querySelector("#showQrButton");
+    const qrSection = document.querySelector("#qrSection");
+    const qrCode = document.querySelector("#qrCode");
+    const shareStatus = document.querySelector("#shareStatus");
+
+
+    function setStatus(element, message, kind = "") {
+      element.textContent = message;
+      element.dataset.kind = kind;
+    }
+
+    function normalizeHttpsUrl(rawValue) {
+      const trimmed = rawValue.trim();
+
+      if (!trimmed) {
+        throw new Error("URLを入力してください。");
+      }
+
+      const withProtocol = /^https:\/\//i.test(trimmed)
+        ? trimmed
+        : `https://${trimmed.replace(/^\/+/, "")}`;
+
+      const parsed = new URL(withProtocol);
+
+      if (parsed.protocol !== "https:") {
+        throw new Error("HTTPSのURLのみ利用できます。");
+      }
+
+      return parsed.href;
+    }
+
+    function createShareUrl(targetUrl) {
+      const payload = targetUrl.replace(/^https:\/\//i, "");
+      const shareUrl = new URL(window.location.href);
+      shareUrl.search = "";
+      shareUrl.hash = "";
+      shareUrl.searchParams.set("url", payload);
+      return shareUrl.href;
+    }
+
+    async function copyText(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.setAttribute("readonly", "");
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+      document.body.append(area);
+      area.select();
+      const copied = document.execCommand("copy");
+      area.remove();
+
+      if (!copied) {
+        throw new Error("クリップボードへのコピーに失敗しました。");
+      }
+    }
+
+    async function handleCreateShareUrl() {
+      try {
+        const targetUrl = normalizeHttpsUrl(urlInput.value);
+        const shareUrl = createShareUrl(targetUrl);
+        await copyText(shareUrl);
+        setStatus(createStatus, "共有用URLをコピーしました。", "success");
+      } catch (error) {
+        setStatus(createStatus, error.message || "処理に失敗しました。", "error");
+      }
+    }
+
+    function showQrCode(targetUrl) {
+      try {
+        if (typeof QRCode !== "function") {
+          throw new Error("QRコード生成ライブラリを読み込めませんでした。");
+        }
+
+        qrCode.replaceChildren();
+        new QRCode(qrCode, {
+          text: targetUrl,
+          width: 280,
+          height: 280,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+
+        qrSection.hidden = false;
+        showQrButton.textContent = "QRコードを隠す";
+        setStatus(shareStatus, "");
+      } catch (error) {
+        setStatus(shareStatus, error.message || "QRコードを生成できませんでした。", "error");
+      }
+    }
+
+    function hideQrCode() {
+      qrSection.hidden = true;
+      showQrButton.textContent = "このURLのQRコードを表示";
+    }
+
+    function createCacheBustingUrl(targetUrl) {
+  const url = new URL(targetUrl);
+
+  // 既存パラメータを維持したまま、毎回異なる値を追加します。
+  url.searchParams.set("_cache_bust", Date.now().toString());
+
+  return url.href;
+}
+
+    function initialize() {
+      const params = new URLSearchParams(window.location.search);
+      const hasUrlParameter = params.has("url");
+      const payload = params.get("url");
+
+      // クエリパラメータなし:
+      // 「共有するURL」パネルのみ表示します。
+      if (!hasUrlParameter) {
+        createView.hidden = false;
+        shareView.hidden = true;
+        return;
+      }
+
+      // クエリパラメータあり:
+      // 「共有されたURL」パネルのみ表示します。
+      createView.hidden = true;
+      shareView.hidden = false;
+
+      try {
+        const targetUrl = normalizeHttpsUrl(payload ?? "");
+        targetUrlText.textContent = targetUrl;
+        openUrlButton.href = targetUrl;
+
+        openWithoutCacheButton.addEventListener("click", () => {
+  const cacheBustingUrl = createCacheBustingUrl(targetUrl);
+
+  window.open(
+    cacheBustingUrl,
+    "_blank",
+    "noopener,noreferrer"
+  );
+});
+
+        showQrButton.addEventListener("click", () => {
+          if (qrSection.hidden) {
+            showQrCode(targetUrl);
+          } else {
+            hideQrCode();
+          }
+        });
+      } catch {
+  targetUrlText.textContent = "共有URLのクエリパラメータが不正です。";
+  openUrlButton.hidden = true;
+  openWithoutCacheButton.hidden = true;
+  showQrButton.hidden = true;
+  setStatus(
+    shareStatus,
+    "有効なHTTPS URLではありません。",
+    "error"
+  );
+      }
+    }
+
+    copyShareUrlButton.addEventListener("click", handleCreateShareUrl);
+    urlInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        handleCreateShareUrl();
+      }
+    });
+
+
+    initialize();
+  </script>
+</body>
+</html>
