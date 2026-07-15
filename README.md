@@ -1,6 +1,6 @@
 [サイトはこちら](https://uni928.github.io/ShareURL/)
 
-[共有サンプル]([https://uni928.github.io/ShareURL/?url=uni928.github.io%2FUni928PublicHTMLs%2Findex14.html](https://uni928.github.io/ShareURL/?url=uni928.github.io%2FUni928PublicHTMLs%2Findex14.html&hideCache=1&hideArchive=1))
+[共有サンプル]([https://uni928.github.io/ShareURL/?url=uni928.github.io%2FUni928PublicHTMLs%2Findex14.html](https://uni928.github.io/ShareURL/?url=uni928.github.io%2FUni928PublicHTMLs%2Findex14.html&hideCache=1&hideArchive=1)
 
 URL を便利機能付きで共有します。
 
